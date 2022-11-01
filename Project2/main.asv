@@ -1,0 +1,45 @@
+%% Question 1
+sigma = 0.1;
+
+h = @(x) exp(-vecnorm(x).^2/sigma^2);
+% 2  →  1
+
+vec_minus = @(A,B) reshape(permute(A, [1 3 2]) - B, size(A,1), []);
+phi = @(x,P) reshape(h(vec_minus(P,x)),size(P,2),size(x,2));
+% 2, 2⨉n²  →  n²
+
+Phi = @(X,P) sum(phi(X,P),2);
+% 2⨉K, 2⨉n²  →  n²
+
+f = @(X,P,y) norm(Phi(X,P) - y)^2 / 2;
+% 2⨉K, 2⨉n², n²  →  1
+
+%% Question 2
+K = 3;
+P = [ 1/2  1/2 ;
+      1/2 -1/2 ;
+     -1/2  1/2 ;
+     -1/2 -1/2 ]';
+stars = [ 0 -1/2 ;
+          0  1/2 ]';
+y = [ .25; .25; .25; .25 ];
+X = rand(2,K)-.5;
+Y = rand(2,K)-.5;
+t = rand();
+if (f((1-t)*X + t*Y,P,y) <= (1-t)*f(X,P,y) + t*f(Y,P,y))
+    print("The function f is not convex since for")
+    X
+    Y
+    pritn("it breaks the convexity condition:")
+    print("f((1-t)*X + t*Y,P,y) <= (1-t)*f(X,P,y) + t*f(Y,P,y)")
+end
+
+%% Question 3
+D_h = @(x) -x*2/sigma^2*h(x);
+% 2  →  2
+
+D_phi = @(x,P) reshape(D_h(vec_minus(P,x)),size(P,2),size(x,2));
+% 2, 2⨉n²  →  n²
+
+checkgradient(@(x)phi(x,P), @(x)D_phi(x,P), [1;1],[1;1])
+checkgradient(@(x)phi(x,P), @(x)D_phi(x,P), [1;1],[1;1])
